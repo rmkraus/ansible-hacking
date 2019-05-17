@@ -1,0 +1,31 @@
+- name: demonstrate complex nested looping
+  hosts: localhost
+  become: no
+  gather_facts: no
+
+  vars:
+    vms:
+      - name_prefix: srv
+        mac: 00:16:3e:71:40:f2
+        domain: lunchnet.example
+        memory: 16384
+        vcpu: 1
+        profile: performance
+        os: rhel
+        qty: 4
+      - name_prefix: desktop
+        mac: 00:16:3e:71:40:f2
+        domain: lunchnet.example
+        memory: 16384
+        vcpu: 1
+        profile: desktop
+        os: rhel
+        qty: 2
+
+  tasks:
+    - name: loop through vm types
+      include_tasks: create_vms.yml
+      loop: "{{ vms }}"
+      loop_control:
+        loop_var: outer_item
+        label: outer_item.name_prefix

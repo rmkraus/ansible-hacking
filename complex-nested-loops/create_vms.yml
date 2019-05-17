@@ -1,0 +1,4 @@
+- name: create virtual machines
+  debug:
+    msg: "Create VM: {{ outer_item.name_prefix }}_{{ item }}"
+  loop: "{{ range(0, outer_item.qty)|list }}"
