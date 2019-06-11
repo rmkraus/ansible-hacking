@@ -1,0 +1,37 @@
+# Create ansible-callback worker script
+/usr/bin/cat > /usr/local/sbin/tower-provision-callback.sh <<EOM
+#!/bin/bash
+TOWER_HOST="https://tower.lab.rmkra.us/"
+TOWER_JOB_ID="21"
+TOWER_CONFIG_KEY="8e7c5b10-8ded-44d9-bd08-7e2a5721b4b5"
+
+echo "Notifying Tower"
+curl --insecure \
+    --data host_config_key=\${TOWER_CONFIG_KEY} \
+    \${TOWER_HOST}api/v2/job_templates/\${TOWER_JOB_ID}/callback/
+
+echo "Disabling Service"
+/usr/bin/systemctl disable ansible-callback
+
+EOM
+/usr/bin/chmod 750 /usr/local/sbin/tower-provision-callback.sh
+/usr/bin/chown root:root /usr/local/sbin/tower-provision-callback.sh
+
+
+# Create ansible-callback unit file
+/usr/bin/cat > /etc/systemd/system/ansible-callback.service <<EOM
+[Unit]
+Description=Provisioning callback to Ansible
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/tower-provision-callback.sh
+[Install]
+WantedBy=multi-user.target
+
+EOM
+/usr/bin/chmod 644 /etc/systemd/system/ansible-callback.service
+/usr/bin/chown root:root /etc/systemd/system/ansible-callback.service
+/usr/bin/systemctl enable ansible-callback
